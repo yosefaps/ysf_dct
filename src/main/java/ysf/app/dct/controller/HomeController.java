@@ -7,8 +7,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,16 +51,29 @@ public class HomeController {
             return "redirect:home";
         }
 
-//        try {
-////            BufferedImage cleanImage = dct.DCTdenoising(uploadfile.getBytes());
-////            dct.DCTdenoising(uploadfile.getBytes());
-//
-////            dct.testCreateImage();
-//        }
-//        catch (IOException e) {
-//            System.out.println("Failed create gray scale image from input file");
-//            e.printStackTrace();
-//        }
+        try {
+//            BufferedImage cleanImage = dct.DCTdenoising(uploadfile.getBytes());
+//            dct.DCTdenoising(uploadfile.getBytes());
+
+//            dct.testCreateImage();
+
+            // Get a BufferedImage object from a byte array
+            InputStream in = new ByteArrayInputStream(uploadfile.getBytes());
+            BufferedImage originalImage = ImageIO.read(in);
+            BufferedImage output = null;
+
+            // Get image dimensions
+            int height = originalImage.getHeight();
+            int width = originalImage.getWidth();
+//            dct.testColorTransform(originalImage, output, width, height);
+//            dct.boofTest(originalImage);
+            dct.ColorTransform(originalImage, output);
+        }
+
+        catch (IOException e) {
+            System.out.println("Failed create gray scale image from input file");
+            e.printStackTrace();
+        }
 
         try {
             byte[] bytes = uploadfile.getBytes();

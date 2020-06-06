@@ -1,33 +1,41 @@
 package ysf.app.dct.lib;
 
+import boofcv.io.image.ConvertBufferedImage;
+import boofcv.struct.image.*;
+
 import javax.imageio.ImageIO;
+import javax.xml.crypto.Data;
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.color.ColorSpace;
+import java.awt.image.*;
 import java.io.*;
 import java.util.Arrays;
+import java.util.Random;
 
 public class DCT {
 
     public static final double PI = 3.1415926535897931;
 
     private static final float[][] DCTbasis3x3 =
-    {
-        {
-            0.5773502588272094726562500000000000000000f,
-            0.5773502588272094726562500000000000000000f,
-            0.5773502588272094726562500000000000000000f,
-        },
-        {
-            0.7071067690849304199218750000000000000000f,
-            0.0000000000000000000000000000000000000000f,
-            -0.7071067690849304199218750000000000000000f,
-        },
-        {
-            0.4082483053207397460937500000000000000000f,
-            -0.8164966106414794921875000000000000000000f,
-            0.4082483053207397460937500000000000000000f
-        }
-    };
+            {
+                    {
+                            0.5773502588272094726562500000000000000000f,
+                            0.5773502588272094726562500000000000000000f,
+                            0.5773502588272094726562500000000000000000f,
+                    },
+                    {
+                            0.7071067690849304199218750000000000000000f,
+                            0.0000000000000000000000000000000000000000f,
+                            -0.7071067690849304199218750000000000000000f,
+                    },
+                    {
+                            0.4082483053207397460937500000000000000000f,
+                            -0.8164966106414794921875000000000000000000f,
+                            0.4082483053207397460937500000000000000000f
+                    }
+            };
+
+    /* ------------------------------------------------------------------ */
 
     private void Print4DArray(float[][][][] arr, int p1, int p2, int p3, int p4) {
 
@@ -45,65 +53,6 @@ public class DCT {
 //            }
 //            System.out.print(" !! ");
 //        }
-    }
-
-    private void ColorTransform() {
-        System.out.println("Color Transform");
-
-        int size1 = img.getWidth()*img.getHeight();
-        if ( flag == 1 ) {
-            for (int j = 0; j < img.getHeight(); j++) {
-                for (int i = 0; i < img.getWidth(); i++) {
-                    //get rgb color on each pixel
-//                 Color c = new Color(img.getRGB(i, j));
-                    int idx_pixel0 = j * img.getWidth() + i;
-                    int idx_pixel1 = 1 * size1 + j * img.getWidth() + i;
-                    int idx_pixel2 = 2 * size1 + j * img.getWidth() + i;
-                    out.set(idx_pixel0, (float) (in.get(idx_pixel0) * DCTbasis3x3[0][0]
-                            + in.get(idx_pixel1) * DCTbasis3x3[0][1]
-                            + in.get(idx_pixel2) * DCTbasis3x3[0][2]));
-
-                    out.set(idx_pixel1, (float) (in.get(idx_pixel0) * DCTbasis3x3[1][0]
-                            + in.get(idx_pixel1) * DCTbasis3x3[1][1]
-                            + in.get(idx_pixel2) * DCTbasis3x3[1][2]));
-
-                    out.set(idx_pixel2, (float) (in.get(idx_pixel0) * DCTbasis3x3[2][0]
-                            + in.get(idx_pixel1) * DCTbasis3x3[2][1]
-                            + in.get(idx_pixel2) * DCTbasis3x3[2][2]));
-
-                }
-            }
-        }
-        else if (flag == -1) {
-            for (int j = 0; j < img.getHeight(); j++) {
-                for (int i = 0; i < img.getHeight(); i++) {
-                    int idx_pixel0 = j * img.getWidth() + i;
-                    int idx_pixel1 = 1 * size1 + j * img.getWidth() + i;
-                    int idx_pixel2 = 2 * size1 + j * img.getWidth() + i;
-                    out.set(idx_pixel0, (float) (in.get(idx_pixel0) * DCTbasis3x3[0][0]
-                            + in.get(idx_pixel1) * DCTbasis3x3[0][1]
-                            + in.get(idx_pixel2) * DCTbasis3x3[0][2]));
-
-                    out.set(idx_pixel1, (float) (in.get(idx_pixel0) * DCTbasis3x3[1][0]
-                            + in.get(idx_pixel1) * DCTbasis3x3[1][1]
-                            + in.get(idx_pixel2) * DCTbasis3x3[1][2]));
-
-                    out.set(idx_pixel2, (float) (in.get(idx_pixel0) * DCTbasis3x3[2][0]
-                            + in.get(idx_pixel1) * DCTbasis3x3[2][1]
-                            + in.get(idx_pixel2) * DCTbasis3x3[2][2]));
-                }
-            }
-        } else {
-            System.out.print("Error: ColorTransform flag should be 1 (forward) or");
-        }
-    }
-
-    private void Image2Patches() {
-        System.out.println("Image2Patches");
-    }
-
-    private void Patches2Image() {
-        System.out.println("Patches2Image");
     }
 
     public void funcTest() {
@@ -141,31 +90,103 @@ public class DCT {
         Print4DArray(patches, num_patches, channel, height_p, width_p);
     }
 
-    public void testColorTransform(BufferedImage in, BufferedImage out, int width, int height) {
+    public void boofTest(BufferedImage in) throws IOException {
+
+        Planar<GrayF32> convertedImg = new Planar<>(GrayF32.class, in.getWidth(), in.getHeight(), 3);
+        ConvertBufferedImage.convertFrom(in, convertedImg, true);
+
+        Random rand = new Random();
+        for( int i = 0; i < convertedImg.getNumBands(); i++ ) {
+            for (int y = 0; y < convertedImg.getHeight(); y++) {
+                for (int x = 0; x < convertedImg.getWidth(); x++) {
+//                    System.out.println("Original "+i+" = "+rgb.getBand(i).get(x,y));
+                    float xx = convertedImg.getBand(i).get(x,y);
+//                    int rand_int1 = rand.nextInt(25);
+                    xx += 100;
+                    convertedImg.getBand(i).set(x, y, xx);
+                }
+            }
+        }
+
+        BufferedImage output = new BufferedImage(in.getWidth(), in.getHeight(), in.getType());
+        ConvertBufferedImage.convertTo(convertedImg, output,true);
+
+        File pwd = new File(".");
+        File outfile = File.createTempFile("aaaaa", ".png", pwd);
+        ImageIO.write(output, "PNG", outfile);
+        System.out.println("doneee: " + outfile.getAbsolutePath());
+    }
+
+    public void testColorTransform(BufferedImage in, BufferedImage out, int width, int height) throws IOException {
+        int bands = 3;
+//        int[] bandOffsets = {0, 1, 2, 3}; // length == bands, 0 == R, 1 == G, 2 == B and 3 == A
+        float[] outsrc = new float[width*height*bands];
+        float[] outsrc2 = new float[width*height*4];
+
+        int size1 = width * height;
+        System.out.println("w: "+ width+", h:"+height);
+
+        int imagetype = in.getType();
+        Raster xx = in.getData();
+        DataBuffer yy = xx.getDataBuffer();
+        System.out.println("data buffer size: " + yy.getSize());
+        for (int asd = 0; asd < yy.getSize(); asd++) {
+//            System.out.print(yy.getElemFloat(asd)+" ");
+            outsrc2[asd] = yy.getElemFloat(asd);
+        }
+        System.out.println("end \n");
         for (int j = 0; j < height; j++) {
             for (int i = 0; i < width; i++) {
-                Color c = new Color(in.getRGB(j, i));
+
+//                System.out.println("try get rgb: "+j+","+i+".");
+                Color c = new Color(in.getRGB(i, j));
                 int r = c.getRed();
                 int g = c.getGreen();
                 int b = c.getBlue();
+//                int a = c.getAlpha();
+//                System.out.println("getrgb: "+j+","+i+"("+r+","+g+","+b+")");
 
                 float or =
                         (  r * DCTbasis3x3[0][0]
-                            + g * DCTbasis3x3[0][1]
-                            + b * DCTbasis3x3[0][2] );
+                                + g * DCTbasis3x3[0][1]
+                                + b * DCTbasis3x3[0][2] );
 
                 float og =
                         (  r * DCTbasis3x3[1][0]
-                            + g * DCTbasis3x3[1][1]
-                            + b * DCTbasis3x3[1][2] );
+                                + g * DCTbasis3x3[1][1]
+                                + b * DCTbasis3x3[1][2] );
 
                 float ob =
                         (  r * DCTbasis3x3[2][0]
-                            + g * DCTbasis3x3[2][1]
-                            + b * DCTbasis3x3[2][2] );
+                                + g * DCTbasis3x3[2][1]
+                                + b * DCTbasis3x3[2][2] );
 
+                // fill the buffer
+                int idx_pixel0 = j * width + i;
+                int idx_pixel1 = 1 * size1 + j * width + i;
+                int idx_pixel2 = 2 * size1 + j * width + i;
+//                outsrc[idx_pixel0] = or;
+//                outsrc[idx_pixel1] = og;
+//                outsrc[idx_pixel2] = ob;
+                outsrc[idx_pixel0] = r;
+                outsrc[idx_pixel1] = g;
+                outsrc[idx_pixel2] = b;
             }
         }
+
+        for(int aa = 0; aa < width * height * 4; aa++){
+//            System.out.print(outsrc2[aa] + " ");
+        }
+        System.out.println("end \n");
+
+        out = new BufferedImage(width, height, imagetype);
+        WritableRaster raster = out.getRaster();
+        raster.setPixels(raster.getMinX(), raster.getMinY(), raster.getWidth(), raster.getHeight(), outsrc2);
+
+        File pwd = new File(".");
+        File outfile = File.createTempFile("aaaaa", ".png", pwd);
+        ImageIO.write(out, "PNG", outfile);
+        System.out.println("doneee: " + outfile.getAbsolutePath());
     }
 
     public void testCreateImage() throws IOException {
@@ -191,6 +212,49 @@ public class DCT {
         System.out.println("Create file: " + out.getAbsolutePath());
         ImageIO.write(img, "PNG", out);
 //        return ImageIO.createImageInputStream(out);
+    }
+
+    /* ------------------------------------------------------------------ */
+
+    public void ColorTransform(BufferedImage in, BufferedImage out) throws IOException {
+        System.out.println("image input type: " + in.getType());
+
+        int w = in.getWidth();
+        int h = in.getHeight();
+
+        Planar<GrayF32> preparedImg = new Planar<>(GrayF32.class, w, h, 3);
+        ConvertBufferedImage.convertFrom(in, preparedImg, true);
+        Planar<GrayF32> decorrelated = new Planar<>(GrayF32.class, w, h, 3);
+
+        for (int r = 0; r < preparedImg.getHeight(); r++) {
+            for (int c = 0; c < preparedImg.getWidth(); c++) {
+                float temp_r = preparedImg.getBand(0).get(c, r);
+                float temp_g = preparedImg.getBand(1).get(c, r);
+                float temp_b = preparedImg.getBand(2).get(c, r);
+                float temp_dr = (temp_r * DCTbasis3x3[0][0]) + (temp_g * DCTbasis3x3[0][1]) + (temp_b * DCTbasis3x3[0][2]);
+                float temp_dg = (temp_g * DCTbasis3x3[1][0]) + (temp_g * DCTbasis3x3[1][1]) + (temp_b * DCTbasis3x3[1][2]);
+                float temp_db = (temp_b * DCTbasis3x3[2][0]) + (temp_g * DCTbasis3x3[2][1]) + (temp_b * DCTbasis3x3[2][2]);
+                decorrelated.getBand(0).set(c, r, temp_dr);
+                decorrelated.getBand(1).set(c, r, temp_dg);
+                decorrelated.getBand(2).set(c, r, temp_db);
+            }
+        }
+
+        out = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        ConvertBufferedImage.convertTo(decorrelated, out,true);
+
+        File pwd = new File("./output");
+        File outfile = File.createTempFile("out_", ".png", pwd);
+        ImageIO.write(out, "PNG", outfile);
+        System.out.println("done: " + outfile.getAbsolutePath());
+    }
+
+    private void Image2Patches() {
+        System.out.println("Image2Patches");
+    }
+
+    private void Patches2Image() {
+        System.out.println("Patches2Image");
     }
 
     public void DCTdenoising(byte[] img) throws IOException {
@@ -239,7 +303,7 @@ public class DCT {
         double[][] dct = new double[height][width];
         double ci, cj, dct1, sum;
 
-        this.ColorTransform();
+//        this.ColorTransform();
 
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
