@@ -216,7 +216,7 @@ public class DCT {
 
     /* ------------------------------------------------------------------ */
 
-    public void ColorTransform(BufferedImage in, BufferedImage out) throws IOException {
+    public Planar<GrayF32> ColorTransform(BufferedImage in) throws IOException {
         System.out.println("image input type: " + in.getType());
 
         int w = in.getWidth();
@@ -240,17 +240,35 @@ public class DCT {
             }
         }
 
-        out = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        ConvertBufferedImage.convertTo(decorrelated, out,true);
+        return decorrelated;
 
-        File pwd = new File("./output");
-        File outfile = File.createTempFile("out_", ".png", pwd);
-        ImageIO.write(out, "PNG", outfile);
-        System.out.println("done: " + outfile.getAbsolutePath());
+//        BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+//        ConvertBufferedImage.convertTo(decorrelated, out,true);
+//
+//        File pwd = new File("./output");
+//        File outfile = File.createTempFile("out_", ".png", pwd);
+//        ImageIO.write(out, "PNG", outfile);
+//        System.out.println("done: " + outfile.getAbsolutePath());
     }
 
-    private void Image2Patches() {
-        System.out.println("Image2Patches");
+    private void Image2Patches(Planar<GrayF32> decImg, float[][][][] patches, int width_p, int height_p) {
+
+        int width = decImg.getWidth();
+        int height = decImg.getHeight();
+        int channel = decImg.getNumBands();
+
+        int counter_patch = 0;
+        for (int j = 0; j < height - height_p + 1; j ++)
+            for (int i = 0; i < width - width_p + 1; i ++) {
+                for (int kp = 0; kp < channel; kp++)
+                    for (int jp = 0; jp < height_p; jp ++)
+                        for (int ip = 0; ip < width_p; ip ++) {
+                            patches[counter_patch][kp][jp][ip] =
+                                    // mesti di cek ulang, apakah posisinya sudah betul
+                                    decImg.getBand(channel).get(i+ip, j+jp);
+                        }
+                counter_patch ++;
+            }
     }
 
     private void Patches2Image() {
@@ -303,19 +321,21 @@ public class DCT {
         double[][] dct = new double[height][width];
         double ci, cj, dct1, sum;
 
-//        this.ColorTransform();
+        Planar<GrayF32> decImage = this.ColorTransform(originalImage);
 
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                Color c = new Color(originalImage.getRGB(j, i));
-                int r = c.getRed();
-                int g = c.getGreen();
-                int b = c.getBlue();
-                int a = c.getAlpha();
-//                System.out.printf("(j, i): (%d, %d), r: %d, g: %d, b: %d, a: %d \n", j,i,r,g,b,a);
-            }
-        }
+        this.Image2Patches(decImage, patches, width_p, height_p);
 
+
+//        for (int i = 0; i < height; i++) {
+//            for (int j = 0; j < width; j++) {
+//                Color c = new Color(originalImage.getRGB(j, i));
+//                int r = c.getRed();
+//                int g = c.getGreen();
+//                int b = c.getBlue();
+//                int a = c.getAlpha();
+////                System.out.printf("(j, i): (%d, %d), r: %d, g: %d, b: %d, a: %d \n", j,i,r,g,b,a);
+//            }
+//        }
 
         // Get a BufferedImage object from a byte array
 //        InputStream in = new ByteArrayInputStream(image);
