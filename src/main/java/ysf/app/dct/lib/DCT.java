@@ -12,6 +12,8 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Random;
 
+import ysf.app.dct.lib.DCT2D;
+
 public class DCT {
 
     public static final double PI = 3.1415926535897931;
@@ -301,16 +303,17 @@ public class DCT {
 
         int num_patches = (width - width_p + 1) * (height - height_p + 1);
 
-        float[][][][] patches = new float[num_patches][][][];
-        for (int p = 0; p < num_patches; p++) {
-            patches[p] = new float[channel][][];
-            for (int c = 0; c < channel; c++) {
-                patches[p][c] = new float[height_p][];
-                for (int h = 0; h < height_p; h++) {
-                    patches[p][c][h] = new float[width_p];
-                }
-            }
-        }
+//        float[][][][] patches = new float[num_patches][][][];
+//        for (int p = 0; p < num_patches; p++) {
+//            patches[p] = new float[channel][][];
+//            for (int c = 0; c < channel; c++) {
+//                patches[p][c] = new float[height_p][];
+//                for (int h = 0; h < height_p; h++) {
+//                    patches[p][c][h] = new float[width_p];
+//                }
+//            }
+//        }
+        float[][][][] patches = new float[num_patches][channel][height_p][width_p];
         System.out.println(Arrays.toString(patches));
 
         if (channel == 3) {
@@ -324,6 +327,28 @@ public class DCT {
         Planar<GrayF32> decImage = this.ColorTransform(originalImage);
 
         this.Image2Patches(decImage, patches, width_p, height_p);
+
+        // temporary
+        int flag_dct16x16 = 0;
+
+        // 2D DCT forward
+        for (int p = 0; p < num_patches; p ++) {
+            for (int k = 0; k < channel; k ++) {
+                if (flag_dct16x16 == 0) {
+                    DCT2D.CalculateDCT2D(patches[p][k], 1);
+                } else {
+                    DCT2D.CalculateDCT2D(patches[p][k], 1);
+                }
+            }
+        }
+
+        // Thresholding
+
+        // 2D DCT inverse
+
+
+
+
 
 
 //        for (int i = 0; i < height; i++) {
