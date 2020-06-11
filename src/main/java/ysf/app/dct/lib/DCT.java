@@ -337,7 +337,7 @@ public class DCT {
                 if (flag_dct16x16 == 0) {
                     DCT2D.CalculateDCT2D(patches[p][k], 1);
                 } else {
-                    DCT2D.CalculateDCT2D(patches[p][k], 1);
+                    DCT2D.CalculateDCT2D8(patches[p][k], 1);
                 }
             }
         }
@@ -345,7 +345,15 @@ public class DCT {
         // Thresholding
 
         // 2D DCT inverse
-
+        for (int p = 0; p< num_patches; p++){
+            for (int k = 0; k< channel; k++){
+                if (flag_dct16x16 == 0){
+                    DCT2D.CalculateDCT2D(patches[p][k], -1);
+                }else {
+                    DCT2D.CalculateDCT2D8(patches[p][k], -1);
+                }
+            }
+        }
 
 
 
